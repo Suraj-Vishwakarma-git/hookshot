@@ -1,0 +1,11 @@
+import express from "express";
+import authMiddleware from "../middleware/authMiddleware.js";
+import { createEvent, getEvents, getEventById } from "../controllers/eventController.js";
+import { createLimiter, rateLimitMiddleware } from "../middleware/rateLimiter.js";
+const router = express.Router();
+const eventLimiter = createLimiter({ limit: 10, windowMs: 60 * 1000 });
+const eventRateLimiter = rateLimitMiddleware({ limiter: eventLimiter, keyGenerator: (req) => req.user.id });
+router.post("/", authMiddleware, eventRateLimiter, createEvent);
+router.get("/", authMiddleware, getEvents);
+router.get("/:id", authMiddleware, getEventById);
+export default router;
